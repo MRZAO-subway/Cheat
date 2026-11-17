@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar projeto
+      - name: Baixar repositorio
         uses: actions/checkout@v4
 
       - name: Configurar Java
@@ -24,8 +24,20 @@ jobs:
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Extrair ZIP
+        run: |
+          unzip -q Download.zip -d projeto
+
       - name: Compilar APK
         run: |
+          GRADLEW="$(find projeto -type f -name gradlew -print -quit)"
+
+          if [ -z "$GRADLEW" ]; then
+            echo "ERRO: gradlew nao encontrado no ZIP"
+            exit 1
+          fi
+
+          cd "$(dirname "$GRADLEW")"
           chmod +x gradlew
           ./gradlew assembleDebug
 
@@ -34,3 +46,4 @@ jobs:
         with:
           name: Meu-APK
           path: "**/build/outputs/apk/debug/*.apk"
+          if-no-files-found: error
